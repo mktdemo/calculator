@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bihar Survey - Smart Land Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+  <style>
+    body {
+      font-family: Arial;
+      background: #0f172a;
+      color: white;
+      margin: 0;
+    }
+
+    h2 {
+      text-align: center;
+      padding: 15px;
+      margin: 0;
+    }
+
+    .tabs {
+      display: flex;
+      background: #1e293b;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 12px;
+      text-align: center;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+
+    .tab.active {
+      border-bottom: 2px solid #22c55e;
+      font-weight: bold;
+    }
+
+    .section {
+      display: none;
+      padding: 20px;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .box {
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 400px;
+      margin: 10px auto;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      margin: 6px 0;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #22c55e;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .result {
+      margin-top: 12px;
+      background: #0f172a;
+      padding: 10px;
+      border-radius: 8px;
+      text-align: left;
+    }
+
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+    }
+
+    .grid .box {
+      width: 260px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h2>Bihar Survey - Smart Land Calculator</h2>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('converter', this)">Converter - 1 Unit to Multiple Units</div>
+  <div class="tab" onclick="showTab('solver', this)">Convert All to Single Unit</div>
+</div>
+
+<!-- ================= CONVERTER ================= -->
+<div id="converter" class="section active">
+
+  <div class="box">
+
+    <label><b>Select Correct - Kanma Unit</b></label>
+
+    <select id="kanmaMode">
+      <option value="20"> 1 Dhur = 20 Kanma</option>
+      <option value="16"> 1 Dhur = 16 Kanma</option>
+      <option value="13"> 1 Dhur = 13 Kanma</option>
+    </select>
+
+    <input type="number" step="any" id="value" placeholder="Enter value">
+
+    <select id="unit">
+      <option value="dismil">Dismil</option>
+      <option value="bigha">Bigha</option>
+      <option value="kattha">Kattha</option>
+      <option value="dhur">Dhur</option>
+    </select>
+
+    <button onclick="convert()">Calculate</button>
+
+    <div class="result" id="output"></div>
+
+  </div>
+
+</div>
+
+<!-- ================= SOLVERS ================= -->
+<div id="solver" class="section">
+
+  <div class="grid">
+
+    <!-- FIND DISMIL -->
+    <div class="box">
+      <h3>Dismil</h3>
+
+      <input type="number" step="any" id="b1" placeholder="Bigha">
+      <input type="number" step="any" id="k1" placeholder="Kattha">
+      <input type="number" step="any" id="d1" placeholder="Dhur">
+      <input type="number" step="any" id="ka1" placeholder="Kanma">
+
+      <div class="result" id="out1"></div>
+    </div>
+
+    <!-- FIND BIGHA -->
+    <div class="box">
+      <h3>Bigha</h3>
+
+      <input type="number" step="any" id="k2" placeholder="Kattha">
+      <input type="number" step="any" id="d2" placeholder="Dhur">
+      <input type="number" step="any" id="ka2" placeholder="Kanma">
+      <input type="number" step="any" id="dis2" placeholder="Dismil">
+
+      <div class="result" id="out2"></div>
+    </div>
+
+    <!-- FIND KATTHA -->
+    <div class="box">
+      <h3>Kattha</h3>
+
+      <input type="number" step="any" id="b3" placeholder="Bigha">
+      <input type="number" step="any" id="d3" placeholder="Dhur">
+      <input type="number" step="any" id="ka3" placeholder="Kanma">
+      <input type="number" step="any" id="dis3" placeholder="Dismil">
+
+      <div class="result" id="out3"></div>
+    </div>
+
+    <!-- FIND DHUR -->
+    <div class="box">
+      <h3>Dhur</h3>
+
+      <input type="number" step="any" id="b4" placeholder="Bigha">
+      <input type="number" step="any" id="k4" placeholder="Kattha">
+      <input type="number" step="any" id="ka4" placeholder="Kanma">
+      <input type="number" step="any" id="dis4" placeholder="Dismil">
+
+      <div class="result" id="out4"></div>
+    </div>
+
+    <!-- FIND KANMA -->
+    <div class="box">
+      <h3>Kanma</h3>
+
+      <input type="number" step="any" id="b5" placeholder="Bigha">
+      <input type="number" step="any" id="k5" placeholder="Kattha">
+      <input type="number" step="any" id="d5" placeholder="Dhur">
+      <input type="number" step="any" id="dis5" placeholder="Dismil">
+
+      <div class="result" id="out5"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+"use strict";
+
+// Constants
+const B = 87;
+const K = 87 / 20;
+const D = 87 / 400;
+
+// DOM
+const kanmaMode = document.getElementById("kanmaMode");
+const valueInput = document.getElementById("value");
+const unitSelect = document.getElementById("unit");
+const output = document.getElementById("output");
+
+// Tabs
+function showTab(id, el) {
+
+  document.querySelectorAll('.section')
+    .forEach(s => s.classList.remove('active'));
+
+  document.getElementById(id)
+    .classList.add('active');
+
+  document.querySelectorAll('.tab')
+    .forEach(t => t.classList.remove('active'));
+
+  el.classList.add('active');
+}
+
+// Normalize
+function normalize(total, base) {
+
+  let b = Math.floor(total / B);
+  total %= B;
+
+  let k = Math.floor(total / K);
+  total %= K;
+
+  let d = Math.floor(total / D);
+  let rem = total % D;
+
+  let kanma = (rem / D) * base;
+
+  return `
+    ${b} Bigha 
+    ${k} Kattha 
+    ${d} Dhur 
+    ${kanma.toFixed(2)} Kanma
+  `;
+}
+
+// Converter
+function convert() {
+
+  let val = +valueInput.value || 0;
+  let unit = unitSelect.value;
+  let base = +kanmaMode.value;
+
+  let total = 0;
+
+  if (unit === "dismil") total = val;
+  if (unit === "bigha") total = val * B;
+  if (unit === "kattha") total = val * K;
+  if (unit === "dhur") total = val * D;
+
+  let b = total / B;
+  let k = total / K;
+  let d = total / D;
+  let kanma = d * base;
+
+  output.innerHTML = `
+    <b>Dismil:</b> ${total.toFixed(2)}<br>
+    <b>Bigha:</b> ${b.toFixed(4)}<br>
+    <b>Kattha:</b> ${k.toFixed(2)}<br>
+    <b>Dhur:</b> ${d.toFixed(2)}<br>
+    <b>Kanma:</b> ${kanma.toFixed(2)}<br><br>
+
+    <b>Normalized:</b><br>
+    ${normalize(total, base)}
+  `;
+}
+
+// Solver: Dismil
+function findDismil() {
+
+  let base = +kanmaMode.value;
+
+  let total =
+    (+document.getElementById("b1").value || 0) * B +
+    (+document.getElementById("k1").value || 0) * K +
+    (+document.getElementById("d1").value || 0) * D +
+    ((+document.getElementById("ka1").value || 0) / base) * D;
+
+  document.getElementById("out1").innerHTML =
+    `<b>Dismil:</b> ${total.toFixed(2)}`;
+}
+
+// Solver: Bigha
+function findBigha() {
+
+  let base = +kanmaMode.value;
+
+  let total =
+    (+document.getElementById("k2").value || 0) * K +
+    (+document.getElementById("d2").value || 0) * D +
+    ((+document.getElementById("ka2").value || 0) / base) * D +
+    (+document.getElementById("dis2").value || 0);
+
+  document.getElementById("out2").innerHTML =
+    `<b>Bigha:</b> ${(total / B).toFixed(4)}`;
+}
+
+// Solver: Kattha
+function findKattha() {
+
+  let base = +kanmaMode.value;
+
+  let total =
+    (+document.getElementById("b3").value || 0) * B +
+    (+document.getElementById("d3").value || 0) * D +
+    ((+document.getElementById("ka3").value || 0) / base) * D +
+    (+document.getElementById("dis3").value || 0);
+
+  document.getElementById("out3").innerHTML =
+    `<b>Kattha:</b> ${(total / K).toFixed(2)}`;
+}
+
+// Solver: Dhur
+function findDhur() {
+
+  let base = +kanmaMode.value;
+
+  let total =
+    (+document.getElementById("b4").value || 0) * B +
+    (+document.getElementById("k4").value || 0) * K +
+    ((+document.getElementById("ka4").value || 0) / base) * D +
+    (+document.getElementById("dis4").value || 0);
+
+  document.getElementById("out4").innerHTML =
+    `<b>Dhur:</b> ${(total / D).toFixed(2)}`;
+}
+
+// Solver: Kanma
+function findKanma() {
+
+  let base = +kanmaMode.value;
+
+  let total =
+    (+document.getElementById("b5").value || 0) * B +
+    (+document.getElementById("k5").value || 0) * K +
+    (+document.getElementById("d5").value || 0) * D +
+    (+document.getElementById("dis5").value || 0);
+
+  let kanma = (total / D) * base;
+
+  document.getElementById("out5").innerHTML =
+    `<b>Kanma:</b> ${kanma.toFixed(2)}`;
+}
+
+// Auto update
+document.querySelectorAll('input, select').forEach(el => {
+
+  el.addEventListener("input", () => {
+    convert();
+
+    findDismil();
+    findBigha();
+    findKattha();
+    findDhur();
+    findKanma();
+  });
+
+  el.addEventListener("change", () => {
+    convert();
+
+    findDismil();
+    findBigha();
+    findKattha();
+    findDhur();
+    findKanma();
+  });
+
+});
+
+// Initial run
+convert();
+
+</script>
+
+</body>
+</html>
